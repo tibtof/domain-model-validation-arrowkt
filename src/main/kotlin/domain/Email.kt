@@ -1,3 +1,5 @@
+package domain
+
 import arrow.core.Validated
 import arrow.core.invalidNel
 import arrow.core.valid
@@ -14,20 +16,6 @@ value class Email private constructor(val value: String) {
 
         private fun isValidEmail(value: String): Boolean = value.contains('@')
     }
-}
 
-@JvmInline
-value class WhitelistedEmail private constructor(private val email: Email) {
-    companion object {
-        fun whitelistedEmail(whitelist: List<Email>, value: String?): Validated<ValidationErrors, WhitelistedEmail> {
-            val email = Email.valueOf(value)
-            return email.andThen {
-                if (it !in whitelist) ValidationError("'$it' is not in the list of whitelisted emails").invalidNel()
-                else WhitelistedEmail(it).valid()
-            }
-        }
-    }
-
-    val value
-        get() = email.value
+    override fun toString(): String = value
 }

@@ -1,34 +1,35 @@
+package cli
+
 import arrow.core.computations.either
 import arrow.core.getOrHandle
 import arrow.core.handleErrorWith
 import arrow.core.left
 import arrow.core.right
-import cli.readInput
 import config.appConfig
 import domain.AllowedSenders
 import domain.ApplicationErrors
-import domain.EmailRoute
+import domain.EmailRoute.Companion.validated
 import domain.InterruptedError
 import domain.ReceiveEmailConsents
+import leftNel
+import log
+
 
 suspend fun main() = either<ApplicationErrors, Unit> {
     val (allowedSenders, receiverEmailConsent) = appConfig().bind()
 
-    with(allowedSenders) {
-        with(receiverEmailConsent) {
-            while (true) {
-                runProgram().bind()
-            }
+    with(ApplicationContext(allowedSenders, receiverEmailConsent)) {
+        while (true) {
+            runProgram().bind()
         }
     }
 }.getOrHandle { errors ->
     errors.log()
 }
 
-context(AllowedSenders, ReceiveEmailConsents)
-private suspend fun runProgram() = either<ApplicationErrors, Unit> {
+private suspend fun ApplicationContext.runProgram() = either<ApplicationErrors, Unit> {
     val (from, to, cc, bcc) = readInput().leftNel().bind()
-    val emailRoute = EmailRoute.validated(from, to, cc, bcc).bind()
+    val emailRoute = validated(from, to, cc, bcc).bind()
 
     println("Sending email to $emailRoute")
 }.handleErrorWith { errors ->
@@ -39,3 +40,8 @@ private suspend fun runProgram() = either<ApplicationErrors, Unit> {
         Unit.right()
     }
 }
+
+class ApplicationContext(
+    private val allowedSenders: AllowedSenders,
+    private val receiveEmailConsents: ReceiveEmailConsents
+) : AllowedSenders by allowedSenders, ReceiveEmailConsents by receiveEmailConsents

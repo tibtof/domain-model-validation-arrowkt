@@ -1,5 +1,5 @@
 package domain
 
 fun interface ReceiveEmailConsents {
-    operator fun contains(email: Email): Boolean
+    fun consentsReceivingEmails(email: Email): Boolean
 }

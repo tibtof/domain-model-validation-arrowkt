@@ -14,13 +14,14 @@ data class EmailRoute private constructor(
     val bcc: List<Email> = emptyList()
 ) {
     companion object {
-        context(AllowedSenders, ReceiveEmailConsents)
-        fun validated(
+        fun <T> T.validated(
             from: String,
             to: String,
             cc: List<String> = emptyList(),
             bcc: List<String> = emptyList()
-        ): Validated<ValidationErrors, EmailRoute> =
+        ): Validated<ValidationErrors, EmailRoute> where
+                T : AllowedSenders,
+                T : ReceiveEmailConsents =
             validate(
                 Email.valueOf(from),
                 Email.valueOf(to),
@@ -32,10 +33,10 @@ data class EmailRoute private constructor(
                 when {
                     emailRoute.cc.isEmpty() && emailRoute.bcc.isEmpty() ->
                         ValidationError("Both cc and bcc are empty").invalidNel()
-                    emailRoute.from !in this@AllowedSenders ->
-                        ValidationError("'${emailRoute.from}' is not in the list of allowed senders").invalidNel()
-                    emailRoute.to !in this@ReceiveEmailConsents ->
-                        ValidationError("'${emailRoute.to}' does not consent receiving emails").invalidNel()
+                    !isSenderAllowed(emailRoute.from) ->
+                        ValidationError("'${emailRoute.from.value}' is not in the list of allowed senders").invalidNel()
+                    !consentsReceivingEmails(emailRoute.to) ->
+                        ValidationError("${emailRoute.to.value} does not consent receiving emails").invalidNel()
                     else -> emailRoute.valid()
                 }
             }

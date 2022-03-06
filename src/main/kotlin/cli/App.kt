@@ -14,21 +14,19 @@ import domain.ReceiveEmailConsents
 suspend fun main() = either<ApplicationErrors, Unit> {
     val (allowedSenders, receiverEmailConsent) = appConfig().bind()
 
-    with(allowedSenders) {
-        with(receiverEmailConsent) {
-            while (true) {
-                runProgram().bind()
-            }
-        }
+    while (true) {
+        runProgram(allowedSenders, receiverEmailConsent).bind()
     }
 }.getOrHandle { errors ->
     errors.log()
 }
 
-context(AllowedSenders, ReceiveEmailConsents)
-private suspend fun runProgram() = either<ApplicationErrors, Unit> {
+private suspend fun runProgram(
+    allowedSenders: AllowedSenders,
+    receiveEmailConsents: ReceiveEmailConsents
+) = either<ApplicationErrors, Unit> {
     val (from, to, cc, bcc) = readInput().leftNel().bind()
-    val emailRoute = EmailRoute.validated(from, to, cc, bcc).bind()
+    val emailRoute = EmailRoute.validated(allowedSenders, receiveEmailConsents, from, to, cc, bcc).bind()
 
     println("Sending email to $emailRoute")
 }.handleErrorWith { errors ->

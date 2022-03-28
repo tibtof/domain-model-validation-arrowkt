@@ -1,15 +1,18 @@
+package cli
+
 import arrow.core.computations.either
 import arrow.core.getOrHandle
 import arrow.core.handleErrorWith
 import arrow.core.left
 import arrow.core.right
-import cli.readInput
 import config.appConfig
 import domain.AllowedSenders
 import domain.ApplicationErrors
 import domain.EmailRoute
 import domain.InterruptedError
 import domain.ReceiveEmailConsents
+import leftNel
+import log
 
 suspend fun main() = either<ApplicationErrors, Unit> {
     val (allowedSenders, receiverEmailConsent) = appConfig().bind()

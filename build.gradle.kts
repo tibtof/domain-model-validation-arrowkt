@@ -4,6 +4,7 @@ repositories {
 
 plugins {
     kotlin("jvm") version "1.6.20-M1"
+    application
 }
 
 dependencies {
@@ -23,4 +24,12 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 
 tasks.withType<Test>() {
     useJUnitPlatform()
+}
+
+application {
+    mainClass.set("cli.AppKt")
+}
+
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
 }

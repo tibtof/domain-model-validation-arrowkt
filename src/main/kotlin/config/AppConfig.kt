@@ -2,8 +2,6 @@ package config
 
 import arrow.core.Either
 import arrow.core.computations.either
-import arrow.core.left
-import arrow.core.right
 import arrow.core.traverseValidated
 import asList
 import domain.AllowedSenders
@@ -29,18 +27,20 @@ suspend fun appConfig(): Either<ApplicationErrors, Pair<AllowedSenders, ReceiveE
                 ReceiveEmailConsents { validatedConsents.contains(it) }
     }
 
-private fun <T : Any> T.readProperties() = try {
-    this::class.java.getResourceAsStream(
-        "/application.properties"
-    ).use {
-        val properties = Properties().apply { load(it) }
+private fun <T : Any> T.readProperties() =
+    Either.catch {
+        this::class.java.getResourceAsStream(
+            "/application.properties"
+        ).use { inputStream ->
+            val properties = Properties().apply { load(inputStream) }
 
-        val allowedSendersProperties = properties["allowed-senders"].toString().asList()
+            val allowedSendersProperties = properties["allowed-senders"].toString().asList()
 
-        val receiveEmailConsentsProperties = properties["receive-email-consents"].toString().asList()
+            val receiveEmailConsentsProperties = properties["receive-email-consents"].toString().asList()
 
-        allowedSendersProperties to receiveEmailConsentsProperties
-    }.right()
-} catch (e: Exception) {
-    RuntimeError(e.message).left()
-}
+            allowedSendersProperties to receiveEmailConsentsProperties
+        }
+    }.mapLeft {
+        RuntimeError(it.message)
+    }
+

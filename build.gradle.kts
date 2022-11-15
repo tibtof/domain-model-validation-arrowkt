@@ -3,16 +3,17 @@ repositories {
 }
 
 plugins {
-    kotlin("jvm") version "1.6.20-M1"
+    kotlin("jvm") version "1.7.21"
     application
 }
 
 dependencies {
-    implementation("io.arrow-kt:arrow-core:1.0.1")
+    implementation(platform("io.kotest:kotest-bom:5.5.4"))
+    implementation("io.arrow-kt:arrow-core:1.1.3")
 
-    testImplementation("io.kotest:kotest-runner-junit5:5.1.0")
-    testImplementation("io.kotest:kotest-assertions-core:5.1.0")
-    testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.3")
+    testImplementation("io.kotest:kotest-runner-junit5")
+    testImplementation("io.kotest:kotest-assertions-core")
+    testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.5")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {

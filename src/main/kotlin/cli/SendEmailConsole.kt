@@ -2,7 +2,7 @@ package cli
 
 import arrow.core.Either
 import arrow.core.Tuple4
-import arrow.core.computations.either
+import arrow.core.continuations.either
 import arrow.core.left
 import arrow.core.right
 import asList

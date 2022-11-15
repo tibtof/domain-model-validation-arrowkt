@@ -3,7 +3,7 @@ package domain
 import arrow.core.Validated
 import arrow.core.andThen
 import arrow.core.invalidNel
-import arrow.core.traverseValidated
+import arrow.core.traverse
 import arrow.core.valid
 import validate
 
@@ -24,18 +24,21 @@ data class EmailRoute private constructor(
             validate(
                 Email.valueOf(from),
                 Email.valueOf(to),
-                cc.traverseValidated { Email.valueOf(it) },
-                bcc.traverseValidated { Email.valueOf(it) }
+                cc.traverse { Email.valueOf(it) },
+                bcc.traverse { Email.valueOf(it) }
             ) { validFrom, validTo, validCc, validBcc ->
                 EmailRoute(validFrom, validTo, validCc, validBcc)
             }.andThen { emailRoute ->
                 when {
                     emailRoute.cc.isEmpty() && emailRoute.bcc.isEmpty() ->
                         ValidationError("Both cc and bcc are empty").invalidNel()
+
                     emailRoute.from !in this@AllowedSenders ->
                         ValidationError("'${emailRoute.from}' is not in the list of allowed senders").invalidNel()
+
                     emailRoute.to !in this@ReceiveEmailConsents ->
                         ValidationError("'${emailRoute.to}' does not consent receiving emails").invalidNel()
+
                     else -> emailRoute.valid()
                 }
             }

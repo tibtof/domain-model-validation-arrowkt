@@ -1,8 +1,8 @@
 package config
 
 import arrow.core.Either
-import arrow.core.computations.either
-import arrow.core.traverseValidated
+import arrow.core.continuations.either
+import arrow.core.traverse
 import asList
 import domain.AllowedSenders
 import domain.ApplicationErrors
@@ -19,8 +19,8 @@ suspend fun appConfig(): Either<ApplicationErrors, Pair<AllowedSenders, ReceiveE
         val (allowedSenderProperties, receiveEmailConsentsProperties) = readProperties().leftNel().bind()
 
         val (validatedAllowedSenders, validatedConsents) = validate(
-            allowedSenderProperties.traverseValidated { Email.valueOf(it) },
-            receiveEmailConsentsProperties.traverseValidated { Email.valueOf(it) }
+            allowedSenderProperties.traverse { Email.valueOf(it) },
+            receiveEmailConsentsProperties.traverse { Email.valueOf(it) }
         ).bind()
 
         AllowedSenders { validatedAllowedSenders.contains(it) } to
